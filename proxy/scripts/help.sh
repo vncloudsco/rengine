@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-source "$(dirname "$0")/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 usage

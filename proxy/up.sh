@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/scripts/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/common.sh"
 
 parse_args "$@"
 require_docker
