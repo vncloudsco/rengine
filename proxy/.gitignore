@@ -1,0 +1,8 @@
+# Runtime proxy credentials — do not commit
+data/*.txt
+data/*.tmp
+data/*.sync_hash
+
+__pycache__/
+*.pyc
+.env

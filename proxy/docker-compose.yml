@@ -1,0 +1,29 @@
+services:
+  urban-proxy-fetcher:
+    build: .
+    container_name: rengine-urban-proxy
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      WORKERS: ${URBAN_PROXY_WORKERS:-20}
+      INTERVAL_MIN: ${URBAN_PROXY_INTERVAL:-25}
+      PROXY_OUTPUT: /data/proxies_curl.txt
+      AUTO_ENABLE_PROXY: ${AUTO_ENABLE_PROXY:-true}
+      POSTGRES_HOST: db
+    volumes:
+      - ./data:/data
+    networks:
+      - rengine_network
+    depends_on:
+      db:
+        condition: service_started
+
+  celery:
+    volumes:
+      - ./data:/usr/src/urban_proxies:ro
+
+networks:
+  rengine_network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME:-rengine}_rengine_network
