@@ -2,6 +2,8 @@
 data/*.txt
 data/*.tmp
 data/*.sync_hash
+data/sync_django.py
+data/sync-watch.log
 
 __pycache__/
 *.pyc

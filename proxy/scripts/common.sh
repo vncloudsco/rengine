@@ -201,3 +201,30 @@ load_env_domain() {
   DOMAIN_NAME="$(env_get DOMAIN_NAME localhost)"
   export DOMAIN_NAME
 }
+
+# sync_django.py lives in data/ so one volume mount exposes proxies + script in web/celery.
+prepare_sync_script() {
+  mkdir -p "$DATA_DIR"
+  cp -f "$PROXY_DIR/sync_django.py" "$DATA_DIR/sync_django.py"
+}
+
+ensure_web_proxy_volume() {
+  prepare_sync_script
+  if ! service_running web; then
+    compose up -d web
+    sleep 8
+  fi
+  if compose exec -T web test -f /usr/src/urban_proxies/sync_django.py 2>/dev/null; then
+    return 0
+  fi
+  log "Web container missing proxy volume — recreating web (overlay compose)..."
+  compose up -d --force-recreate web
+  sleep 12
+  if ! compose exec -T web test -f /usr/src/urban_proxies/sync_django.py 2>/dev/null; then
+    log_error "sync_django.py not found in web at /usr/src/urban_proxies/sync_django.py"
+    log "Ensure you run compose with both files:"
+    log "  -f $ROOT_DIR/docker-compose.yml -f $PROXY_DIR/docker-compose.yml"
+    log "Then: make sync-once"
+    exit 1
+  fi
+}

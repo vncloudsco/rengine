@@ -13,9 +13,7 @@ if [[ ! -f "$PROXY_FILE" ]]; then
 fi
 
 log "Syncing proxies via Django ORM (web container)..."
-if ! service_running web; then
-  compose up -d web
-fi
+ensure_web_proxy_volume
 
 auto_enable="$(env_get AUTO_ENABLE_PROXY true)"
 

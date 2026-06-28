@@ -10,5 +10,6 @@ if ! service_running web; then
 fi
 
 log "Disabling proxy via Django ORM (web container)..."
+ensure_web_proxy_volume
 compose exec -T web python3 /usr/src/urban_proxies/sync_django.py --disable
 log "use_proxy=false in scanengine_proxy (same path as Proxy Settings UI)."
