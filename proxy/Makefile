@@ -1,4 +1,4 @@
-.PHONY: up down down-all logs status disable sync-once help
+.PHONY: up down down-all logs status disable sync-once recover-db help
 
 UP_OPTS ?=
 
@@ -22,6 +22,9 @@ disable:      ## Set use_proxy=false in reNgine DB
 
 sync-once:    ## Push proxy file to DB once
 	@bash ./scripts/sync-once.sh
+
+recover-db:   ## Reset PostgreSQL volume (fixes broken migrations). Use: make recover-db RECOVER_OPTS=-y
+	@bash ./scripts/recover-db.sh $(RECOVER_OPTS)
 
 help:         ## Show help
 	@bash ./scripts/help.sh

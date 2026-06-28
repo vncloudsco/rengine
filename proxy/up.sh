@@ -12,7 +12,7 @@ if ! is_rengine_core_running; then
   source "$PROXY_DIR/scripts/bootstrap_rengine.sh"
   bootstrap_rengine_full
   wait_for_db_ready
-  first_run_migrate
+  wait_for_web_migrations
   prompt_or_hint_username
 else
   log "reNgine core already running — starting proxy module only."

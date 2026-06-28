@@ -22,13 +22,6 @@ bootstrap_rengine_full() {
   cd "$PROXY_DIR"
 }
 
-first_run_migrate() {
-  log "Applying database migrations..."
-  cd "$ROOT_DIR"
-  make migrate
-  cd "$PROXY_DIR"
-}
-
 prompt_or_hint_username() {
   log "Create an admin account if you have not already:"
   log "  make -C .. username"

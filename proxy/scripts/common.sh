@@ -133,6 +133,26 @@ wait_for_db_ready() {
   exit 1
 }
 
+wait_for_web_migrations() {
+  log "Waiting for web entrypoint migrations (NOT running make migrate — avoids race)..."
+  sleep 20
+  local i
+  for i in $(seq 1 120); do
+    if ! service_running web; then
+      sleep 2
+      continue
+    fi
+    if compose exec -T web python3 manage.py migrate --check >/dev/null 2>&1; then
+      log "Database migrations are up to date."
+      return 0
+    fi
+    sleep 3
+  done
+  log "Migration check timed out (web may still be migrating)."
+  log "If UI fails, run: bash scripts/recover-db.sh && make up"
+  return 0
+}
+
 wait_for_proxy_file() {
   local timeout="${1:-300}"
   local i=0
