@@ -22,6 +22,7 @@ source "$PROXY_DIR/scripts/start_proxy_module.sh"
 start_proxy_module
 
 wait_for_proxy_file 300
+bash "$PROXY_DIR/scripts/sync-once.sh"
 
 source "$PROXY_DIR/scripts/print_ready.sh"
 print_ready_message

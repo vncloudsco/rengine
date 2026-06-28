@@ -156,6 +156,8 @@ def run_watch(path: str, *, auto_enable: bool) -> int:
             raise
         except Exception as exc:
             _log(f"Sync failed: {exc}")
+            # Retry on next poll even if the file mtime did not change.
+            last_mtime = None
 
         try:
             time.sleep(WATCH_POLL_SEC)

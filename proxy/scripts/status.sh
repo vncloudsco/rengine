@@ -32,4 +32,21 @@ else
 fi
 
 echo ""
-log "Use 'make logs' for sidecar output."
+log "=== reNgine DB (scanengine_proxy) ==="
+pg_user="$(env_get POSTGRES_USER rengine)"
+pg_db="$(env_get POSTGRES_DB rengine)"
+db_line="$(compose exec -T db psql -U "$pg_user" -d "$pg_db" -t -A -F'|' -c \
+  "SELECT use_proxy, COALESCE(length(proxies), 0), COALESCE((length(proxies) - length(replace(proxies, chr(10), ''))), 0) + CASE WHEN proxies IS NOT NULL AND proxies <> '' THEN 1 ELSE 0 END FROM scanengine_proxy ORDER BY id LIMIT 1;" \
+  2>/dev/null | tr -d '[:space:]' || true)"
+
+if [[ -z "$db_line" ]]; then
+  echo "  (no row in scanengine_proxy — run: make sync-once)"
+else
+  IFS='|' read -r use_proxy proxy_len proxy_lines <<< "$db_line"
+  echo "  use_proxy: ${use_proxy:-unknown}"
+  echo "  proxies in DB: ${proxy_lines:-0} lines (${proxy_len:-0} chars)"
+fi
+
+echo ""
+log "If file has proxies but DB is empty: make sync-once"
+log "Sidecar logs: make logs"
