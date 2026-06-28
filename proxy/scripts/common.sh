@@ -24,6 +24,13 @@ detect_compose_project_name() {
   if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
     return
   fi
+  local from_env
+  from_env="$(env_get COMPOSE_PROJECT_NAME "")"
+  if [[ -n "$from_env" ]]; then
+    COMPOSE_PROJECT_NAME="$from_env"
+    export COMPOSE_PROJECT_NAME
+    return
+  fi
   local folder
   folder="$(basename "$ROOT_DIR")"
   folder="${folder// /}"
@@ -32,16 +39,26 @@ detect_compose_project_name() {
   export COMPOSE_PROJECT_NAME
 }
 
+# Read KEY=value from .env without sourcing (safe for passwords with @ & $ etc.)
+env_get() {
+  local key="$1"
+  local default="${2:-}"
+  local line value
+  line="$(grep -E "^${key}=" "$ENV_FILE" 2>/dev/null | tail -n 1 || true)"
+  if [[ -z "$line" ]]; then
+    printf '%s' "$default"
+    return
+  fi
+  value="${line#*=}"
+  printf '%s' "$value"
+}
+
 compose() {
   detect_compose_project_name
   if [[ ! -f "$ENV_FILE" ]]; then
     log_error "Missing $ENV_FILE"
     exit 1
   fi
-  # shellcheck disable=SC1090
-  set -a
-  source "$ENV_FILE"
-  set +a
   export COMPOSE_PROJECT_NAME
   "${DOCKER_COMPOSE[@]}" --env-file "$ENV_FILE" "${COMPOSE_FILES[@]}" "$@"
 }
@@ -120,10 +137,11 @@ is_rengine_core_running() {
 }
 
 wait_for_db_ready() {
-  local i
+  local i pg_user
+  pg_user="$(env_get POSTGRES_USER postgres)"
   log "Waiting for PostgreSQL..."
   for i in $(seq 1 60); do
-    if compose exec -T db pg_isready -U "${POSTGRES_USER:-postgres}" >/dev/null 2>&1; then
+    if compose exec -T db pg_isready -U "$pg_user" >/dev/null 2>&1; then
       log "PostgreSQL is ready."
       return 0
     fi
@@ -173,8 +191,6 @@ wait_for_proxy_file() {
 }
 
 load_env_domain() {
-  # shellcheck disable=SC1090
-  set -a
-  source "$ENV_FILE"
-  set +a
+  DOMAIN_NAME="$(env_get DOMAIN_NAME localhost)"
+  export DOMAIN_NAME
 }
