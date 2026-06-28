@@ -202,6 +202,18 @@ load_env_domain() {
   export DOMAIN_NAME
 }
 
+# Run sync_django.py inside web with Django app on PYTHONPATH (cwd /usr/src/app).
+run_sync_django() {
+  local -a extra=()
+  if (($#)); then
+    extra=("$@")
+  fi
+  compose exec -T -w /usr/src/app web env \
+    PROXY_FILE=/usr/src/urban_proxies/proxies_curl.txt \
+    AUTO_ENABLE_PROXY="$(env_get AUTO_ENABLE_PROXY true)" \
+    python3 /usr/src/urban_proxies/sync_django.py "${extra[@]}"
+}
+
 # sync_django.py lives in data/ so one volume mount exposes proxies + script in web/celery.
 prepare_sync_script() {
   mkdir -p "$DATA_DIR"

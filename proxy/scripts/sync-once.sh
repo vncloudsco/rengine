@@ -15,11 +15,6 @@ fi
 log "Syncing proxies via Django ORM (web container)..."
 ensure_web_proxy_volume
 
-auto_enable="$(env_get AUTO_ENABLE_PROXY true)"
-
-compose exec -T web env \
-  PROXY_FILE=/usr/src/urban_proxies/proxies_curl.txt \
-  AUTO_ENABLE_PROXY="$auto_enable" \
-  python3 /usr/src/urban_proxies/sync_django.py
+run_sync_django
 
 log "Sync complete. Hard-refresh Proxy Settings in reNgine UI (Ctrl+F5)."

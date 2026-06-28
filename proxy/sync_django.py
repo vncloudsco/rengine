@@ -7,6 +7,15 @@ import os
 import sys
 
 
+def _bootstrap_django_app() -> None:
+    """Ensure reNgine package is importable when script is outside /usr/src/app."""
+    app_root = os.environ.get("RENGINE_APP_ROOT", "/usr/src/app")
+    if os.path.isdir(app_root):
+        if app_root not in sys.path:
+            sys.path.insert(0, app_root)
+        os.chdir(app_root)
+
+
 def _truthy(name: str, default: bool = True) -> bool:
     raw = os.environ.get(name)
     if raw is None:
@@ -26,6 +35,7 @@ def main() -> int:
     args = parser.parse_args()
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reNgine.settings")
+    _bootstrap_django_app()
 
     import django
 
