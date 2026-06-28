@@ -60,7 +60,7 @@ compose() {
     exit 1
   fi
   export COMPOSE_PROJECT_NAME
-  "${DOCKER_COMPOSE[@]}" --env-file "$ENV_FILE" "${COMPOSE_FILES[@]}" "$@"
+  "${DOCKER_COMPOSE[@]}" --project-directory "$ROOT_DIR" --env-file "$ENV_FILE" "${COMPOSE_FILES[@]}" "$@"
 }
 
 log() {

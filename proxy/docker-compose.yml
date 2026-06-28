@@ -1,10 +1,13 @@
+# Overlay for reNgine root docker-compose.yml
+# Paths are relative to the reNgine project root (see compose --project-directory).
+
 services:
   urban-proxy-fetcher:
-    build: .
+    build: ./proxy
     container_name: rengine-urban-proxy
     restart: unless-stopped
     env_file:
-      - ../.env
+      - .env
     environment:
       WORKERS: ${URBAN_PROXY_WORKERS:-20}
       INTERVAL_MIN: ${URBAN_PROXY_INTERVAL:-25}
@@ -12,7 +15,7 @@ services:
       AUTO_ENABLE_PROXY: ${AUTO_ENABLE_PROXY:-true}
       POSTGRES_HOST: db
     volumes:
-      - ./data:/data
+      - ./proxy/data:/data
     networks:
       - rengine_network
     depends_on:
@@ -21,7 +24,7 @@ services:
 
   celery:
     volumes:
-      - ./data:/usr/src/urban_proxies:ro
+      - ./proxy/data:/usr/src/urban_proxies:ro
 
 networks:
   rengine_network:
