@@ -3,7 +3,9 @@
 
 services:
   urban-proxy-fetcher:
-    build: ./proxy
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
     container_name: rengine-urban-proxy
     restart: unless-stopped
     env_file:

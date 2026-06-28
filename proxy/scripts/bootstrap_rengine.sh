@@ -23,6 +23,10 @@ bootstrap_rengine_full() {
 }
 
 prompt_or_hint_username() {
+  if superuser_exists; then
+    log "Superuser already exists, skipping create."
+    return 0
+  fi
   log "Create an admin account if you have not already:"
   log "  make -C .. username"
   if [[ "$NON_INTERACTIVE" == true ]]; then

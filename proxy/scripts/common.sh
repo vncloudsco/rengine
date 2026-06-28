@@ -136,6 +136,13 @@ is_rengine_core_running() {
   service_running db && service_running web && service_running celery
 }
 
+superuser_exists() {
+  service_running web || return 1
+  compose exec -T web python3 manage.py shell -c \
+    "from django.contrib.auth import get_user_model; print(get_user_model().objects.filter(is_superuser=True).exists())" \
+    2>/dev/null | grep -q "True"
+}
+
 wait_for_db_ready() {
   local i pg_user
   pg_user="$(env_get POSTGRES_USER postgres)"
