@@ -1,4 +1,4 @@
-.PHONY: up down down-all logs status disable sync-once recover-db help
+.PHONY: up down down-all logs status disable sync-once recover-db verify help
 
 UP_OPTS ?=
 
@@ -25,6 +25,9 @@ sync-once:    ## Push proxy file to DB once
 
 recover-db:   ## Reset PostgreSQL volume (fixes broken migrations). Use: make recover-db RECOVER_OPTS=-y
 	@bash ./scripts/recover-db.sh $(RECOVER_OPTS)
+
+verify:       ## Confirm reNgine proxy storage + sync path (run after make sync-once)
+	@bash ./scripts/verify-proxy.sh
 
 help:         ## Show help
 	@bash ./scripts/help.sh

@@ -28,6 +28,11 @@ services:
     volumes:
       - ./proxy/data:/usr/src/urban_proxies:ro
 
+  web:
+    volumes:
+      - ./proxy/data:/usr/src/urban_proxies:ro
+      - ./proxy/sync_django.py:/usr/src/urban_proxies/sync_django.py:ro
+
 networks:
   rengine_network:
     external: true

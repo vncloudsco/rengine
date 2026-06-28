@@ -32,21 +32,30 @@ else
 fi
 
 echo ""
-log "=== reNgine DB (scanengine_proxy) ==="
-pg_user="$(env_get POSTGRES_USER rengine)"
-pg_db="$(env_get POSTGRES_DB rengine)"
-db_line="$(compose exec -T db psql -U "$pg_user" -d "$pg_db" -t -A -F'|' -c \
-  "SELECT use_proxy, COALESCE(length(proxies), 0), COALESCE((length(proxies) - length(replace(proxies, chr(10), ''))), 0) + CASE WHEN proxies IS NOT NULL AND proxies <> '' THEN 1 ELSE 0 END FROM scanengine_proxy ORDER BY id LIMIT 1;" \
-  2>/dev/null | tr -d '[:space:]' || true)"
-
-if [[ -z "$db_line" ]]; then
-  echo "  (no row in scanengine_proxy — run: make sync-once)"
+log "=== reNgine DB (via Django ORM) ==="
+if service_running web; then
+  django_status="$(compose exec -T web python3 -c "
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'reNgine.settings')
+import django
+django.setup()
+from scanEngine.models import Proxy
+p = Proxy.objects.first()
+print(f'table={Proxy._meta.db_table}')
+print(f'rows={Proxy.objects.count()}')
+if p:
+    lines = [x for x in (p.proxies or '').splitlines() if x.strip()]
+    print(f'use_proxy={p.use_proxy}')
+    print(f'proxy_lines={len(lines)}')
+else:
+    print('use_proxy=false')
+    print('proxy_lines=0')
+" 2>/dev/null || echo "error=could not query Django")"
+  echo "$django_status" | sed 's/^/  /'
 else
-  IFS='|' read -r use_proxy proxy_len proxy_lines <<< "$db_line"
-  echo "  use_proxy: ${use_proxy:-unknown}"
-  echo "  proxies in DB: ${proxy_lines:-0} lines (${proxy_len:-0} chars)"
+  echo "  web not running"
 fi
 
 echo ""
-log "If file has proxies but DB is empty: make sync-once"
+log "If file has proxies but Django rows=0: make sync-once"
 log "Sidecar logs: make logs"

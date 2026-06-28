@@ -12,11 +12,16 @@ if [[ ! -f "$PROXY_FILE" ]]; then
   exit 1
 fi
 
-if service_running urban-proxy-fetcher; then
-  compose exec -T urban-proxy-fetcher python3 /app/sync_proxies_to_db.py --force --file /data/proxies_curl.txt
-else
-  compose run --rm --no-deps urban-proxy-fetcher \
-    python3 /app/sync_proxies_to_db.py --file /data/proxies_curl.txt --force
+log "Syncing proxies via Django ORM (web container)..."
+if ! service_running web; then
+  compose up -d web
 fi
 
-log "Sync complete. Refresh Proxy Settings in reNgine UI."
+auto_enable="$(env_get AUTO_ENABLE_PROXY true)"
+
+compose exec -T web env \
+  PROXY_FILE=/usr/src/urban_proxies/proxies_curl.txt \
+  AUTO_ENABLE_PROXY="$auto_enable" \
+  python3 /usr/src/urban_proxies/sync_django.py
+
+log "Sync complete. Hard-refresh Proxy Settings in reNgine UI (Ctrl+F5)."
