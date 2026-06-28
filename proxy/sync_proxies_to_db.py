@@ -63,12 +63,28 @@ def connect_db():
     )
 
 
+def ensure_proxy_table(conn) -> None:
+    """Create scanengine_proxy if migrations have not created it yet."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS scanengine_proxy (
+                id SERIAL PRIMARY KEY,
+                use_proxy BOOLEAN NOT NULL DEFAULT FALSE,
+                proxies TEXT NULL
+            )
+            """
+        )
+    conn.commit()
+
+
 def sync_to_db(lines: list[str], *, auto_enable: bool) -> bool:
     """Write proxies to scanengine_proxy. Returns True if DB was updated."""
     proxies_text = "\n".join(lines)
     use_proxy = auto_enable and len(lines) > 0
 
     with connect_db() as conn:
+        ensure_proxy_table(conn)
         with conn.cursor() as cur:
             cur.execute("SELECT id FROM scanengine_proxy ORDER BY id LIMIT 1")
             row = cur.fetchone()
@@ -96,6 +112,7 @@ def sync_to_db(lines: list[str], *, auto_enable: bool) -> bool:
 
 def set_use_proxy(enabled: bool) -> None:
     with connect_db() as conn:
+        ensure_proxy_table(conn)
         with conn.cursor() as cur:
             cur.execute("SELECT id FROM scanengine_proxy ORDER BY id LIMIT 1")
             row = cur.fetchone()
